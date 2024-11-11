@@ -22,26 +22,48 @@ function connect(event) {
     usernamePage.classList.add('hidden');
     chatPage.classList.remove('hidden');
 
-    const socket = new SocketJS('/ws');
+    var socket = new SockJS('/ws');
     stompClient = Stomp.over(socket);
     stompClient.connect({}, onConnected, onError);
   }
   event.preventDefault();
 }
 
+
 function onConnected() {
   stompClient.subscribe('/topic/public', onMessageReceived);
 
-  stompClient.send('/app/chat.addUser', {}, JSON.stringify({sender: username, type: 'JOIN'}));
-    connectingElement.classList.add('hidden');
+  stompClient.send("/app/chat.addUser",
+    {},
+    JSON.stringify({ sender: username, type: 'JOIN' })
+  )
+
+  connectingElement.classList.add('hidden');
 }
 
-function onError() {
+
+function onError(error) {
   connectingElement.textContent = 'Could not connect to WebSocket server. Please refresh this page to try again!';
   connectingElement.style.color = 'red';
 }
 
-function onMessageReceived() {
+
+function sendMessage(event) {
+  const messageContent = messageInput.value.trim();
+  if (messageContent && stompClient) {
+    const chatMessage = {
+      sender: username,
+      content: messageInput.value,
+      type: 'CHAT'
+    };
+    stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
+    messageInput.value = '';
+  }
+  event.preventDefault();
+}
+
+
+function onMessageReceived(payload) {
   const message = JSON.parse(payload.body);
 
   const messageElement = document.createElement('li');
@@ -62,14 +84,14 @@ function onMessageReceived() {
 
     messageElement.appendChild(avatarElement);
 
-    const usernameElement = document.createElement('span');
-    const usernameText = document.createTextNode(message.sender);
+    let usernameElement = document.createElement('span');
+    let usernameText = document.createTextNode(message.sender);
     usernameElement.appendChild(usernameText);
     messageElement.appendChild(usernameElement);
   }
 
-  const textElement = document.createElement('p');
-  const messageText = document.createTextNode(message.content);
+  let textElement = document.createElement('p');
+  let messageText = document.createTextNode(message.content);
   textElement.appendChild(messageText);
 
   messageElement.appendChild(textElement);
@@ -78,28 +100,15 @@ function onMessageReceived() {
   messageArea.scrollTop = messageArea.scrollHeight;
 }
 
-function sendMessage(event) {
-    const messageContent = messageInput.value.trim();
-    if (messageContent && stompClient) {
-        const chatMessage = {
-        sender: username,
-        content: messageInput,
-        type: 'CHAT'
-        };
-        stompClient.send('/app/chat.sendMessage', {}, JSON.stringify(chatMessage));
-        messageInput.value = '';
-    }
-    event.preventDefault();
-}
 
 function getAvatarColor(messageSender) {
   let hash = 0;
-  for (let i = 0; i < messageSender.length; i++) {
+  for (var i = 0; i < messageSender.length; i++) {
     hash = 31 * hash + messageSender.charCodeAt(i);
   }
   const index = Math.abs(hash % colors.length);
   return colors[index];
 }
 
-usernameForm.addEventListener('submit', connect, true);
-messageForm.addEventListener('submit', sendMessage, true);
+usernameForm.addEventListener('submit', connect, true)
+messageForm.addEventListener('submit', sendMessage, true)
