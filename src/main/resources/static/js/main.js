@@ -29,4 +29,15 @@ function connect(event) {
   event.preventDefault();
 }
 
+function onConnected() {
+  stompClient.subscribe('/topic/public', onMessageReceived);
+
+  stompClient.send('/app/chat.addUser', {}, JSON.stringify({sender: username, type: 'JOIN'}));
+    connectingElement.classList.add('hidden');
+}
+
+function onMessageReceived() {
+
+}
+
 usernameForm.addEventListener('submit', connect, true);
