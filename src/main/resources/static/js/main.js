@@ -42,7 +42,40 @@ function onError() {
 }
 
 function onMessageReceived() {
+  const message = JSON.parse(payload.body);
 
+  const messageElement = document.createElement('li');
+
+  if (message.type === 'JOIN') {
+    messageElement.classList.add('event-message');
+    message.content = message.sender + ' joined!';
+  } else if (message.type === 'LEAVE') {
+    messageElement.classList.add('event-message');
+    message.content = message.sender + ' left!';
+  } else {
+    messageElement.classList.add('chat-message');
+
+    const avatarElement = document.createElement('i');
+    const avatarText = document.createTextNode(message.sender[0]);
+    avatarElement.appendChild(avatarText);
+    avatarElement.style['background-color'] = getAvatarColor(message.sender);
+
+    messageElement.appendChild(avatarElement);
+
+    const usernameElement = document.createElement('span');
+    const usernameText = document.createTextNode(message.sender);
+    usernameElement.appendChild(usernameText);
+    messageElement.appendChild(usernameElement);
+  }
+
+  const textElement = document.createElement('p');
+  const messageText = document.createTextNode(message.content);
+  textElement.appendChild(messageText);
+
+  messageElement.appendChild(textElement);
+
+  messageArea.appendChild(messageElement);
+  messageArea.scrollTop = messageArea.scrollHeight;
 }
 
 function sendMessage(event) {
