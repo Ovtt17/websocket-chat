@@ -91,5 +91,15 @@ function sendMessage(event) {
     }
     event.preventDefault();
 }
+
+function getAvatarColor(messageSender) {
+  let hash = 0;
+  for (let i = 0; i < messageSender.length; i++) {
+    hash = 31 * hash + messageSender.charCodeAt(i);
+  }
+  const index = Math.abs(hash % colors.length);
+  return colors[index];
+}
+
 usernameForm.addEventListener('submit', connect, true);
 messageForm.addEventListener('submit', sendMessage, true);
