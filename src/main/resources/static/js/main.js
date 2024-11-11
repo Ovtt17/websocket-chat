@@ -45,4 +45,18 @@ function onMessageReceived() {
 
 }
 
+function sendMessage(event) {
+    const messageContent = messageInput.value.trim();
+    if (messageContent && stompClient) {
+        const chatMessage = {
+        sender: username,
+        content: messageInput,
+        type: 'CHAT'
+        };
+        stompClient.send('/app/chat.sendMessage', {}, JSON.stringify(chatMessage));
+        messageInput.value = '';
+    }
+    event.preventDefault();
+}
 usernameForm.addEventListener('submit', connect, true);
+messageForm.addEventListener('submit', sendMessage, true);
